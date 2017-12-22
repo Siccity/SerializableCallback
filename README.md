@@ -4,6 +4,7 @@ It uses expression trees to create a delegate on first execution, so repeated us
 
 Usage is identical to UnityEvent
 
+![unity_inspector](https://user-images.githubusercontent.com/6402525/34294989-46de127e-e70b-11e7-84f0-99bc4525a8f5.png)
 ```csharp
 public class MyClass : MonoBehaviour {
     //These fields are shown in the inspector
