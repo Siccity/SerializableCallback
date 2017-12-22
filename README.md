@@ -5,7 +5,6 @@ It uses expression trees to create a delegate on first execution, so repeated us
 Usage is identical to UnityEvent
 
 ```csharp
-[System.Serializable]
 public class MyClass : MonoBehaviour {
     //These fields are shown in the inspector
     public SerializableCallback callback; // supports all non-void return types
