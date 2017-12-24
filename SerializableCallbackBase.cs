@@ -11,29 +11,27 @@ using Object = UnityEngine.Object;
 public abstract class SerializableCallbackBase : ISerializationCallbackReceiver {
 
 	/// <summary> Target object </summary>
-	public Object target { get { return _target; } set { _target = value; invokable = null; } }
+	public Object target { get { return _target; } set { _target = value; ClearCache(); } }
 	/// <summary> Target method name </summary>
-	public string methodName { get { return _methodName; } set { _methodName = value; invokable = null; } }
+	public string methodName { get { return _methodName; } set { _methodName = value; ClearCache(); } }
+	public Arg[] args { get { return _args; } set { _args = value; ClearCache(); } }
+	public bool dynamic  { get { return _dynamic; } set { _dynamic = value; ClearCache(); } }
 
-	[SerializeField] private Object _target;
-	[SerializeField] private string _methodName;
-	[SerializeField] private Arg[] _args;
-	[SerializeField] private bool _dynamic;
-	#pragma warning disable 0414
+	[SerializeField] protected Object _target;
+	[SerializeField] protected string _methodName;
+	[SerializeField] protected Arg[] _args;
+	[SerializeField] protected bool _dynamic;
+#pragma warning disable 0414
 	[SerializeField] private string _typeName;
-	#pragma warning restore 0414
-	public bool Cached { get { return invokable != null; } }
-
-	[NonSerialized] protected InvokableCallbackBase invokable;
-
-	protected object Invoke(params object[] args) {
-		if (target == null) return null;
-		if (!Cached) Cache();
-		return invokable != null ? invokable.Invoke(args) : null;
-	}
+#pragma warning restore 0414
+	protected bool cached = false;
 
 	protected SerializableCallbackBase() {
-		_typeName =  base.GetType().AssemblyQualifiedName;
+		_typeName = base.GetType().AssemblyQualifiedName;
+	}
+
+	public void ClearCache() {
+		cached = false;
 	}
 
 	public void SetMethod(Object target, string methodName, bool dynamic, params Arg[] args) {
@@ -44,42 +42,13 @@ public abstract class SerializableCallbackBase : ISerializationCallbackReceiver 
 		ClearCache();
 	}
 
-	public void Cache() {
-		Type targetType = _target.GetType();
-		object[] parameters = new object[_args.Length];
-		Type[] types = new Type[_args.Length];
-		for (int i = 0; i < parameters.Length; i++) {
-			parameters[i] = _args[i].GetValue();
-			types[i] = Arg.RealType(_args[i].argType);
-		}
-		MethodInfo methodInfo = targetType.GetMethod(_methodName, types);
-		if (methodInfo == null) return;
-		if (_dynamic) invokable = GetDelegate(methodInfo, _target);
-		else invokable = GetDelegate(methodInfo, _target, parameters);
-	}
+	protected abstract void Cache();
 
-	public virtual void ClearCache() {
-		invokable = null;
+	public void OnBeforeSerialize() {
+		ClearCache();
 	}
-
-	public bool CanInvoke() {
-		return target != null;
-	}
-
-	/// <summary> Return a delegate with dynamic arguments </summary>
-	protected virtual InvokableCallbackBase GetDelegate(MethodInfo methodInfo, object target) {
-		return new InvokableCallback(target, methodInfo);
-	}
-
-	/// <summary> Return a delegate with constant arguments </summary>
-	protected virtual InvokableCallbackBase GetDelegate(MethodInfo methodInfo, object target, object[] args) {
-		return new InvokableCallback(target, methodInfo, args);
-	}
-
-	public void OnBeforeSerialize() { }
 
 	public void OnAfterDeserialize() {
-		invokable = null;
 		_typeName = base.GetType().AssemblyQualifiedName;
 	}
 }
