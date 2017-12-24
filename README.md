@@ -1,6 +1,6 @@
 ### SerializableCallback
 Lets you drag-and-drop methods with or without return values / parameters in the Unity inspector.
-It uses expression trees to create a delegate on first execution, so repeated use will likely not have a significant performance impact.
+It uses expression trees and reflection to cache a delegate on first execution.
 
 Usage is identical to UnityEvent
 
@@ -28,5 +28,11 @@ public class MyClass : MonoBehaviour {
     public class GetProduct : SerializableCallback<int, MyProduct> {}
 }
 ```
+
+| Performance (x1000000)            | Time     |
+| --------------------------------- | -------- |
+| SerializableCallback<float, bool> | 00.84190s |
+| Func<float, bool>                 | 00.03563s |
+| bool Method(float)                | 00.03493s |
 
 Join the [Discord](https://discord.gg/qgPrHv4 "Join Discord server") server to leave feedback or get support.
