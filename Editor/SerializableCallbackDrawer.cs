@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 [CustomPropertyDrawer(typeof(SerializableCallbackBase), true)]
 public class SerializableCallbackDrawer : PropertyDrawer {
@@ -68,20 +69,20 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 					EditorGUI.BeginChangeCheck();
 					switch ((Arg.ArgType) argProp.FindPropertyRelative("argType").enumValueIndex) {
 						case Arg.ArgType.Bool:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("boolValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("boolValue"), argLabel);
+							break;
 						case Arg.ArgType.Int:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("intValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("intValue"), argLabel);
+							break;
 						case Arg.ArgType.Float:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("floatValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("floatValue"), argLabel);
+							break;
 						case Arg.ArgType.String:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("stringValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("stringValue"), argLabel);
+							break;
 						case Arg.ArgType.Object:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("objectValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("objectValue"), argLabel);
+							break;
 					}
 
 					argRect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
@@ -124,35 +125,41 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		}
 
 		SerializedProperty targetProp = property.FindPropertyRelative("_target");
-		MethodInfo[] methods = targetProp.objectReferenceValue.GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 
 		List<MenuItem> dynamicItems = new List<MenuItem>();
 		List<MenuItem> staticItems = new List<MenuItem>();
 
-		for (int i = 0; i < methods.Length; i++) {
-			MethodInfo method = methods[i];
+		Object[] targets = new Object[] { targetProp.objectReferenceValue };
+		if (targets[0] is Component) targets = (targets[0] as Component).gameObject.GetComponents<Component>();
+		for (int c = 0; c < targets.Length; c++) {
+			Object t = targets[c];
+			MethodInfo[] methods = targets[c].GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 
-			// Skip methods with wrong return type
-			if (returnType != null && method.ReturnType != returnType) continue;
-			// Skip methods with null return type
-			if (method.ReturnType == typeof(void)) continue;
-			// Skip generic methods
-			if (method.IsGenericMethod) continue;
+			for (int i = 0; i < methods.Length; i++) {
+				MethodInfo method = methods[i];
 
-			Type[] parms = method.GetParameters().Select(x => x.ParameterType).ToArray();
+				// Skip methods with wrong return type
+				if (returnType != null && method.ReturnType != returnType) continue;
+				// Skip methods with null return type
+				if (method.ReturnType == typeof(void)) continue;
+				// Skip generic methods
+				if (method.IsGenericMethod) continue;
 
-			// Skip methods with more than 4 args
-			if (parms.Length > 4) continue;
-			// Skip methods with unsupported args
-			if (parms.Any(x => !Arg.IsSupported(x))) continue;
+				Type[] parms = method.GetParameters().Select(x => x.ParameterType).ToArray();
 
-			string methodPrettyName = PrettifyMethod(methods[i]);
-			staticItems.Add(new MenuItem(methods[i].DeclaringType.Name, methodPrettyName, () => SetMethod(property, method, false)));
+				// Skip methods with more than 4 args
+				if (parms.Length > 4) continue;
+				// Skip methods with unsupported args
+				if (parms.Any(x => !Arg.IsSupported(x))) continue;
 
-			// Skip methods with wrong constrained args
-			if (argTypes.Length == 0 || !Enumerable.SequenceEqual(argTypes, parms)) continue;
+				string methodPrettyName = PrettifyMethod(methods[i]);
+				staticItems.Add(new MenuItem(targets[c].GetType().Name + "/" + methods[i].DeclaringType.Name, methodPrettyName, () => SetMethod(property, t, method, false)));
 
-			dynamicItems.Add(new MenuItem(methods[i].DeclaringType.Name, methods[i].Name, () => SetMethod(property, method, true)));
+				// Skip methods with wrong constrained args
+				if (argTypes.Length == 0 || !Enumerable.SequenceEqual(argTypes, parms)) continue;
+
+				dynamicItems.Add(new MenuItem(targets[c].GetType().Name + "/" + methods[i].DeclaringType.Name, methods[i].Name, () => SetMethod(property, t, method, true)));
+			}
 		}
 
 		// Construct and display context menu
@@ -201,7 +208,9 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		return types;
 	}
 
-	private void SetMethod(SerializedProperty property, MethodInfo methodInfo, bool dynamic) {
+	private void SetMethod(SerializedProperty property, UnityEngine.Object target, MethodInfo methodInfo, bool dynamic) {
+		SerializedProperty targetProp = property.FindPropertyRelative("_target");
+		targetProp.objectReferenceValue = target;
 		SerializedProperty methodProp = property.FindPropertyRelative("_methodName");
 		methodProp.stringValue = methodInfo.Name;
 		SerializedProperty dynamicProp = property.FindPropertyRelative("_dynamic");
@@ -210,7 +219,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		ParameterInfo[] parameters = methodInfo.GetParameters();
 		argProp.arraySize = parameters.Length;
 		for (int i = 0; i < parameters.Length; i++) {
-		argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
+			argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
 		}
 		property.serializedObject.ApplyModifiedProperties();
 		property.serializedObject.Update();
