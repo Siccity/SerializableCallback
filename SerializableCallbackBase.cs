@@ -6,142 +6,147 @@ using System.Reflection;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-/// <summary> An inspector-friendly serializable function </summary>
-[System.Serializable]
-public abstract class SerializableCallbackBase : ISerializationCallbackReceiver {
+namespace SerializableCallback {
+	public abstract class SerializableCallbackBase<TReturn> : SerializableCallbackBase {
+		/// <summary> Target object </summary>
+		public Object target { get { return _target; } set { _target = value; invokable = null; } }
+		/// <summary> Target method name </summary>
+		public string methodName { get { return _methodName; } set { _methodName = value; invokable = null; } }
 
-	/// <summary> Target object </summary>
-	public Object target { get { return _target; } set { _target = value; invokable = null; } }
-	/// <summary> Target method name </summary>
-	public string methodName { get { return _methodName; } set { _methodName = value; invokable = null; } }
+		public bool Cached { get { return invokable != null; } }
 
-	[SerializeField] private Object _target;
-	[SerializeField] private string _methodName;
-	[SerializeField] private Arg[] _args;
-	[SerializeField] private bool _dynamic;
-	#pragma warning disable 0414
-	[SerializeField] private string _typeName;
-	#pragma warning restore 0414
-	public bool Cached { get { return invokable != null; } }
+		[NonSerialized] protected InvokableCallbackBase<TReturn> invokable;
 
-	[NonSerialized] protected InvokableCallbackBase invokable;
-
-	protected object Invoke(params object[] args) {
-		if (target == null) return null;
-		if (!Cached) Cache();
-		return invokable != null ? invokable.Invoke(args) : null;
-	}
-
-	protected SerializableCallbackBase() {
-		_typeName =  base.GetType().AssemblyQualifiedName;
-	}
-
-	public void SetMethod(Object target, string methodName, bool dynamic, params Arg[] args) {
-		_target = target;
-		_methodName = methodName;
-		_dynamic = dynamic;
-		_args = args;
-		ClearCache();
-	}
-
-	public void Cache() {
-		Type targetType = _target.GetType();
-		object[] parameters = new object[_args.Length];
-		Type[] types = new Type[_args.Length];
-		for (int i = 0; i < parameters.Length; i++) {
-			parameters[i] = _args[i].GetValue();
-			types[i] = Arg.RealType(_args[i].argType);
+		public virtual void ClearCache() {
+			invokable = null;
 		}
-		MethodInfo methodInfo = targetType.GetMethod(_methodName, types);
-		if (methodInfo == null) return;
-		if (_dynamic) invokable = GetDelegate(methodInfo, _target);
-		else invokable = GetDelegate(methodInfo, _target, parameters);
-	}
 
-	public virtual void ClearCache() {
-		invokable = null;
-	}
+		public void SetMethod(Object target, string methodName, bool dynamic, params Arg[] args) {
+			_target = target;
+			_methodName = methodName;
+			_dynamic = dynamic;
+			_args = args;
+			ClearCache();
+		}
 
-	public bool CanInvoke() {
-		return target != null;
-	}
+		/// <summary> Return a delegate with dynamic arguments </summary>
+		protected abstract InvokableCallbackBase<TReturn> GetDelegate(string methodInfo, object target);
 
-	/// <summary> Return a delegate with dynamic arguments </summary>
-	protected virtual InvokableCallbackBase GetDelegate(MethodInfo methodInfo, object target) {
-		return new InvokableCallback(target, methodInfo);
-	}
+		/// <summary> Return a delegate with constant arguments </summary>
+		protected InvokableCallbackBase<TReturn> GetDelegate(string methodInfo, object target, Arg[] args) {
+			Type[] genericParms = args.Select(x => Arg.RealType(x.argType)).Concat(new Type[] { typeof(TReturn) }).ToArray();
+			object[] _args = args.Select(x => x.GetValue()).ToArray();
+			if (genericParms.Length == 1) {
+				Type cb = typeof(CachedInvokableCallback<>).MakeGenericType(genericParms);
+				return (InvokableCallbackBase<TReturn>) Activator.CreateInstance(cb, target, methodName);
+			} else if (genericParms.Length == 2) {
+				Type cb = typeof(CachedInvokableCallback<,>).MakeGenericType(genericParms);
+				return (InvokableCallbackBase<TReturn>) Activator.CreateInstance(cb, target, methodName, _args[0]);
+			} else if (genericParms.Length == 3) {
+				Type cb = typeof(CachedInvokableCallback<, ,>).MakeGenericType(genericParms);
+				return (InvokableCallbackBase<TReturn>) Activator.CreateInstance(cb, target, methodName, _args[0], _args[1]);
+			}
+			Debug.LogError("Too many arguments! - "+_args.Length);
+			return null;
+		}
 
-	/// <summary> Return a delegate with constant arguments </summary>
-	protected virtual InvokableCallbackBase GetDelegate(MethodInfo methodInfo, object target, object[] args) {
-		return new InvokableCallback(target, methodInfo, args);
-	}
+		/*public void Cache() {
+			if (_dynamic) invokable = GetDelegate(_methodName, _target);
+			else invokable = GetDelegate(_methodName, _target, _args);
+		}*/
 
-	public void OnBeforeSerialize() { }
-
-	public void OnAfterDeserialize() {
-		invokable = null;
-		_typeName = base.GetType().AssemblyQualifiedName;
-	}
-}
-
-[System.Serializable]
-public struct Arg {
-	public enum ArgType { Unsupported, Bool, Int, Float, String, Object }
-	public bool boolValue;
-	public int intValue;
-	public float floatValue;
-	public string stringValue;
-	public Object objectValue;
-	public ArgType argType;
-
-	public object GetValue() {
-		return GetValue(argType);
-	}
-
-	public object GetValue(ArgType type) {
-		switch (type) {
-			case ArgType.Bool:
-				return boolValue;
-			case ArgType.Int:
-				return intValue;
-			case ArgType.Float:
-				return floatValue;
-			case ArgType.String:
-				return stringValue;
-			case ArgType.Object:
-				return objectValue;
-			default:
-				return null;
+		public override void OnAfterDeserialize() {
+			invokable = null;
+			base.OnAfterDeserialize();
 		}
 	}
 
-	public static Type RealType(ArgType type) {
-		switch (type) {
-			case ArgType.Bool:
-				return typeof(bool);
-			case ArgType.Int:
-				return typeof(int);
-			case ArgType.Float:
-				return typeof(float);
-			case ArgType.String:
-				return typeof(string);
-			case ArgType.Object:
-				return typeof(Object);
-			default:
-				return null;
+	/// <summary> An inspector-friendly serializable function </summary>
+	[System.Serializable]
+	public abstract class SerializableCallbackBase : ISerializationCallbackReceiver {
+
+		[SerializeField] protected Object _target;
+		[SerializeField] protected string _methodName;
+		[SerializeField] protected Arg[] _args;
+		[SerializeField] protected bool _dynamic;
+#pragma warning disable 0414
+		[SerializeField] protected string _typeName;
+#pragma warning restore 0414
+
+		protected SerializableCallbackBase() {
+			_typeName = base.GetType().AssemblyQualifiedName;
+		}
+
+		public bool CanInvoke() {
+			return _target != null;
+		}
+
+		public virtual void OnBeforeSerialize() { }
+
+		public virtual void OnAfterDeserialize() {
+			_typeName = base.GetType().AssemblyQualifiedName;
 		}
 	}
 
-	public static ArgType FromRealType(Type type) {
-		if (type == typeof(bool)) return ArgType.Bool;
-		else if (type == typeof(int)) return ArgType.Int;
-		else if (type == typeof(float)) return ArgType.Float;
-		else if (type == typeof(String)) return ArgType.String;
-		else if (type == typeof(Object)) return ArgType.Object;
-		else return ArgType.Unsupported;
-	}
+	[System.Serializable]
+	public struct Arg {
+		public enum ArgType { Unsupported, Bool, Int, Float, String, Object }
+		public bool boolValue;
+		public int intValue;
+		public float floatValue;
+		public string stringValue;
+		public Object objectValue;
+		public ArgType argType;
 
-	public static bool IsSupported(Type type) {
-		return FromRealType(type) != ArgType.Unsupported;
+		public object GetValue() {
+			return GetValue(argType);
+		}
+
+		public object GetValue(ArgType type) {
+			switch (type) {
+				case ArgType.Bool:
+					return boolValue;
+				case ArgType.Int:
+					return intValue;
+				case ArgType.Float:
+					return floatValue;
+				case ArgType.String:
+					return stringValue;
+				case ArgType.Object:
+					return objectValue;
+				default:
+					return null;
+			}
+		}
+
+		public static Type RealType(ArgType type) {
+			switch (type) {
+				case ArgType.Bool:
+					return typeof(bool);
+				case ArgType.Int:
+					return typeof(int);
+				case ArgType.Float:
+					return typeof(float);
+				case ArgType.String:
+					return typeof(string);
+				case ArgType.Object:
+					return typeof(Object);
+				default:
+					return null;
+			}
+		}
+
+		public static ArgType FromRealType(Type type) {
+			if (type == typeof(bool)) return ArgType.Bool;
+			else if (type == typeof(int)) return ArgType.Int;
+			else if (type == typeof(float)) return ArgType.Float;
+			else if (type == typeof(String)) return ArgType.String;
+			else if (type == typeof(Object)) return ArgType.Object;
+			else return ArgType.Unsupported;
+		}
+
+		public static bool IsSupported(Type type) {
+			return FromRealType(type) != ArgType.Unsupported;
+		}
 	}
 }

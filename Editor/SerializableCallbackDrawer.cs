@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
+using SerializableCallback;
 
 [CustomPropertyDrawer(typeof(SerializableCallbackBase), true)]
 public class SerializableCallbackDrawer : PropertyDrawer {
@@ -244,7 +245,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		Type type = Type.GetType(stringValue, false);
 		SerializableCallbackBase result;
 		if (type == null) {
-			result = new SerializableCallback();
+			result = new SerializableCallback.SerializableCallback();
 		} else {
 			result = (Activator.CreateInstance(type) as SerializableCallbackBase);
 		}
