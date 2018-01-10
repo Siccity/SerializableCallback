@@ -13,7 +13,11 @@ public class SerializableCallback : SerializableCallbackBase {
 	}
 
 	protected override void Cache() {
-		func = (System.Action) System.Delegate.CreateDelegate(typeof(System.Action), _target, _methodName);
+		if (_target == null || string.IsNullOrEmpty(_methodName)) {
+			func = () => { };
+		} else {
+			func = (System.Action) System.Delegate.CreateDelegate(typeof(System.Action), _target, _methodName);
+		}
 	}
 }
 
@@ -26,8 +30,12 @@ public abstract class SerializableCallback<TReturn> : SerializableCallbackBase {
 	}
 
 	protected override void Cache() {
-		func = (System.Func<TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<TReturn>), _target, _methodName);
-		cached = true;
+		if (_target == null || string.IsNullOrEmpty(_methodName)) {
+			func = () => default(TReturn);
+		} else {
+			func = (System.Func<TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<TReturn>), _target, _methodName);
+			cached = true;
+		}
 	}
 }
 
@@ -42,9 +50,13 @@ public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBa
 	}
 
 	protected override void Cache() {
-		func = (System.Func<T0, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, TReturn>), _target, _methodName);
-		arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
-		cached = true;
+		if (_target == null || string.IsNullOrEmpty(_methodName)) {
+			func = x => default(TReturn);
+		} else {
+			func = (System.Func<T0, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, TReturn>), _target, _methodName);
+			arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
+			cached = true;
+		}
 	}
 }
 
@@ -60,10 +72,14 @@ public abstract class SerializableCallback<T0, T1, TReturn> : SerializableCallba
 	}
 
 	protected override void Cache() {
-		func = (System.Func<T0, T1, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, TReturn>), _target, _methodName);
-		arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
-		arg1 = (T1) _args[1].GetValue(Arg.FromRealType(typeof(T1)));
-		cached = true;
+		if (_target == null || string.IsNullOrEmpty(_methodName)) {
+			func = (x, y) => default(TReturn);
+		} else {
+			func = (System.Func<T0, T1, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, TReturn>), _target, _methodName);
+			arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
+			arg1 = (T1) _args[1].GetValue(Arg.FromRealType(typeof(T1)));
+			cached = true;
+		}
 	}
 }
 
@@ -80,10 +96,14 @@ public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCa
 	}
 
 	protected override void Cache() {
-		func = (System.Func<T0, T1, T2, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, T2, TReturn>), _target, _methodName);
-		arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
-		arg1 = (T1) _args[1].GetValue(Arg.FromRealType(typeof(T1)));
-		arg2 = (T2) _args[2].GetValue(Arg.FromRealType(typeof(T2)));
-		cached = true;
+		if (_target == null || string.IsNullOrEmpty(_methodName)) {
+			func = (x, y, z) => default(TReturn);
+		} else {
+			func = (System.Func<T0, T1, T2, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, T2, TReturn>), _target, _methodName);
+			arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
+			arg1 = (T1) _args[1].GetValue(Arg.FromRealType(typeof(T1)));
+			arg2 = (T2) _args[2].GetValue(Arg.FromRealType(typeof(T2)));
+			cached = true;
+		}
 	}
 }

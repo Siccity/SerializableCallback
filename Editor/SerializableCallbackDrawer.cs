@@ -11,6 +11,9 @@ using Object = UnityEngine.Object;
 public class SerializableCallbackDrawer : PropertyDrawer {
 
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+		// Indent label
+		label.text = " "+label.text;
+
 		GUI.Box(position, "", (GUIStyle)
 			"flow overlay box");
 		position.y += 4;
@@ -18,9 +21,9 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		// prefab override logic works on the entire property.
 		EditorGUI.BeginProperty(position, label, property);
 		// Draw label
-		Rect pos2 = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
+		Rect pos = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
 
-		Rect targetRect = new Rect(pos2.x, pos2.y, pos2.width, EditorGUIUtility.singleLineHeight);
+		Rect targetRect = new Rect(pos.x, pos.y, pos.width, EditorGUIUtility.singleLineHeight);
 
 		// Get target
 		SerializedProperty targetProp = property.FindPropertyRelative("_target");
@@ -52,8 +55,8 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 			Rect methodRect = new Rect(position.x, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight);
 
 			// Method select button
-			pos2 = EditorGUI.PrefixLabel(methodRect, GUIUtility.GetControlID(FocusType.Passive), new GUIContent(dynamic ? "Method (dynamic)" : "Method"));
-			if (EditorGUI.DropdownButton(pos2, methodlabel, FocusType.Keyboard)) {
+			pos = EditorGUI.PrefixLabel(methodRect, GUIUtility.GetControlID(FocusType.Passive), new GUIContent(dynamic ? "Method (dynamic)" : "Method"));
+			if (EditorGUI.DropdownButton(pos, methodlabel, FocusType.Keyboard)) {
 				MethodSelector(property);
 			}
 
@@ -69,26 +72,30 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 					EditorGUI.BeginChangeCheck();
 					switch ((Arg.ArgType) argProp.FindPropertyRelative("argType").enumValueIndex) {
 						case Arg.ArgType.Bool:
-							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("boolValue"), argLabel);
-							break;
+						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("boolValue"), argLabel);
+						break;
 						case Arg.ArgType.Int:
-							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("intValue"), argLabel);
-							break;
+						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("intValue"), argLabel);
+						break;
 						case Arg.ArgType.Float:
-							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("floatValue"), argLabel);
-							break;
+						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("floatValue"), argLabel);
+						break;
 						case Arg.ArgType.String:
-							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("stringValue"), argLabel);
-							break;
+						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("stringValue"), argLabel);
+						break;
 						case Arg.ArgType.Object:
-							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("objectValue"), argLabel);
-							break;
+						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("objectValue"), argLabel);
+						break;
 					}
 
 					argRect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 				}
 			}
 			EditorGUI.indentLevel = indent;
+		} else {
+			Rect helpBoxRect = new Rect(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight);
+			string msg = "Call not set. Execution will be slower.";
+			EditorGUI.LabelField(helpBoxRect, new GUIContent(msg, msg), "helpBox");
 		}
 
 		// Set indent back to what it was
@@ -219,7 +226,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		ParameterInfo[] parameters = methodInfo.GetParameters();
 		argProp.arraySize = parameters.Length;
 		for (int i = 0; i < parameters.Length; i++) {
-			argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
+		argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
 		}
 		property.serializedObject.ApplyModifiedProperties();
 		property.serializedObject.Update();
@@ -239,11 +246,8 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		SerializedProperty targetProp = property.FindPropertyRelative("_target");
 		SerializedProperty argProps = property.FindPropertyRelative("_args");
 		SerializedProperty dynamicProp = property.FindPropertyRelative("_dynamic");
-		float height = lineheight;
-		if (targetProp.objectReferenceValue != null) {
-			height += lineheight;
-			if (!dynamicProp.boolValue) height += argProps.arraySize * lineheight;
-		}
+		float height = lineheight + lineheight;
+		if (targetProp.objectReferenceValue != null && !dynamicProp.boolValue) height += argProps.arraySize * lineheight;
 		height += 8;
 		return height;
 	}
