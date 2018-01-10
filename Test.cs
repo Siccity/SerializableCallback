@@ -11,7 +11,7 @@ public class Test : MonoBehaviour {
 
 	void Start() {
 		RegularDelegate = TestMethod;
-		DynamicDelegate = (System.Func<float, bool>) System.Delegate.CreateDelegate(typeof(System.Func<float, bool>), this, typeof(Test).GetMethod("TestMethod"));
+		DynamicDelegate = (System.Func<float, bool>) System.Delegate.CreateDelegate(typeof(System.Func<float, bool>), this, "TestMethod");
 		condition.Invoke(f);
 	}
 
@@ -52,6 +52,14 @@ public class Test : MonoBehaviour {
 
 	public bool TestMethod(float f) {
 		return f > 0.5f;
+	}
+
+	public bool TestMethod(string a) {
+		return string.IsNullOrEmpty(a);
+	}
+
+	public bool TestMethod2(float f, string a) {
+		return f > 0.5f && string.IsNullOrEmpty(a);
 	}
 }
 
