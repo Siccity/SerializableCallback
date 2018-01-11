@@ -29,11 +29,10 @@ public class MyClass : MonoBehaviour {
 }
 ```
 
-| Performance (100000 iterations)   | Time      |
-| --------------------------------- | --------- |
-| bool Method(float)                | 00.00184s |
-| Func<float, bool> (Regular)       | 00.00186s |
-| Func<float, bool> (Dynamic)       | 00.00188s |
-| SerializedCallback<float, bool>   | 00.00338s |
+| Performance (100000 iterations)              | Time      |
+| -------------------------------------------- | --------- |
+| bool Method(float)                           | 00.00304s |
+| SerializedCallback<float, bool> (Persistent) | 00.01026s |
+| SerializedCallback<float, bool> (Dynamic)    | 00.00797s |
 
 Join the [Discord](https://discord.gg/qgPrHv4 "Join Discord server") server to leave feedback or get support.

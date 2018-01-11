@@ -12,7 +12,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
 		// Indent label
-		label.text = " "+label.text;
+		label.text = " " + label.text;
 
 		GUI.Box(position, "", (GUIStyle)
 			"flow overlay box");
@@ -87,7 +87,9 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("objectValue"), argLabel);
 						break;
 					}
-
+					if (EditorGUI.EndChangeCheck()) {
+						property.FindPropertyRelative("dirty").boolValue = true;
+					}
 					argRect.y += EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing;
 				}
 			}
@@ -228,6 +230,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		for (int i = 0; i < parameters.Length; i++) {
 		argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
 		}
+		property.FindPropertyRelative("dirty").boolValue = true;
 		property.serializedObject.ApplyModifiedProperties();
 		property.serializedObject.Update();
 	}
@@ -257,7 +260,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		Type type = Type.GetType(stringValue, false);
 		SerializableCallbackBase result;
 		if (type == null) {
-			result = new SerializableCallback();
+			return null;
 		} else {
 			result = (Activator.CreateInstance(type) as SerializableCallbackBase);
 		}

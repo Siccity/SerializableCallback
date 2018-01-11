@@ -2,108 +2,123 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
-[Serializable]
 
-public class SerializableCallback : SerializableCallbackBase {
-	public Action func;
-
-	public void Invoke() {
-		if (!cached) Cache();
-		func.Invoke();
-	}
-
-	protected override void Cache() {
-		if (_target == null || string.IsNullOrEmpty(_methodName)) {
-			func = () => { };
-		} else {
-			func = (System.Action) System.Delegate.CreateDelegate(typeof(System.Action), _target, _methodName);
-		}
-	}
-}
-
-public abstract class SerializableCallback<TReturn> : SerializableCallbackBase {
-	public Func<TReturn> func;
-
+public abstract class SerializableCallback<TReturn> : SerializableCallbackBase<TReturn> {
 	public TReturn Invoke() {
-		if (!cached) Cache();
-		return func.Invoke();
+		if (func == null) Cache();
+		if (_dynamic) {
+			InvokableCallback<TReturn> call = func as InvokableCallback<TReturn>;
+			return call.Invoke();
+		} else {
+			return func.Invoke(Args);
+		}
 	}
 
 	protected override void Cache() {
 		if (_target == null || string.IsNullOrEmpty(_methodName)) {
-			func = () => default(TReturn);
+			func = new InvokableCallback<TReturn>(null, null);
 		} else {
-			func = (System.Func<TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<TReturn>), _target, _methodName);
-			cached = true;
+			if (_dynamic) {
+				func = new InvokableCallback<TReturn>(target, methodName);
+			} else {
+				func = GetPersistentMethod();
+			}
 		}
 	}
 }
 
-public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBase {
-	public Func<T0, TReturn> func;
-	public T0 arg0;
-
+public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBase<TReturn> {
 	public TReturn Invoke(T0 arg0) {
-		if (!cached) Cache();
-		if (_dynamic) return func.Invoke(arg0);
-		else return func.Invoke(this.arg0);
+		if (func == null) Cache();
+		if (_dynamic) {
+			InvokableCallback<T0, TReturn> call = func as InvokableCallback<T0, TReturn>;
+			return call.Invoke(arg0);
+		} else {
+			return func.Invoke(Args);
+		}
 	}
 
 	protected override void Cache() {
 		if (_target == null || string.IsNullOrEmpty(_methodName)) {
-			func = x => default(TReturn);
+			func = new InvokableCallback<T0, TReturn>(null, null);
 		} else {
-			func = (System.Func<T0, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, TReturn>), _target, _methodName);
-			arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
-			cached = true;
+			if (_dynamic) {
+				func = new InvokableCallback<T0, TReturn>(target, methodName);
+			} else {
+				func = GetPersistentMethod();
+			}
 		}
 	}
 }
 
-public abstract class SerializableCallback<T0, T1, TReturn> : SerializableCallbackBase {
-	public Func<T0, T1, TReturn> func;
-	public T0 arg0;
-	public T1 arg1;
-
+public abstract class SerializableCallback<T0, T1, TReturn> : SerializableCallbackBase<TReturn> {
 	public TReturn Invoke(T0 arg0, T1 arg1) {
-		if (!cached) Cache();
-		if (_dynamic) return func.Invoke(arg0, arg1);
-		else return func.Invoke(this.arg0, this.arg1);
+		if (func == null) Cache();
+		if (_dynamic) {
+			InvokableCallback<T0, T1, TReturn> call = func as InvokableCallback<T0, T1, TReturn>;
+			return call.Invoke(arg0, arg1);
+		} else {
+			return func.Invoke(Args);
+		}
 	}
 
 	protected override void Cache() {
 		if (_target == null || string.IsNullOrEmpty(_methodName)) {
-			func = (x, y) => default(TReturn);
+			func = new InvokableCallback<T0, T1, TReturn>(null, null);
 		} else {
-			func = (System.Func<T0, T1, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, TReturn>), _target, _methodName);
-			arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
-			arg1 = (T1) _args[1].GetValue(Arg.FromRealType(typeof(T1)));
-			cached = true;
+			if (_dynamic) {
+				func = new InvokableCallback<T0, T1, TReturn>(target, methodName);
+			} else {
+				func = GetPersistentMethod();
+			}
 		}
 	}
 }
 
-public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCallbackBase {
-	public Func<T0, T1, T2, TReturn> func;
-	public T0 arg0;
-	public T1 arg1;
-	public T2 arg2;
-
+public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCallbackBase<TReturn> {
 	public TReturn Invoke(T0 arg0, T1 arg1, T2 arg2) {
-		if (!cached) Cache();
-		if (_dynamic) return func.Invoke(arg0, arg1, arg2);
-		else return func.Invoke(this.arg0, this.arg1, this.arg2);
+		if (func == null) Cache();
+		if (_dynamic) {
+			InvokableCallback<T0, T1, T2, TReturn> call = func as InvokableCallback<T0, T1, T2, TReturn>;
+			return call.Invoke(arg0, arg1, arg2);
+		} else {
+			return func.Invoke(Args);
+		}
 	}
 
 	protected override void Cache() {
 		if (_target == null || string.IsNullOrEmpty(_methodName)) {
-			func = (x, y, z) => default(TReturn);
+			func = new InvokableCallback<T0, T1, T2, TReturn>(null, null);
 		} else {
-			func = (System.Func<T0, T1, T2, TReturn>) System.Delegate.CreateDelegate(typeof(System.Func<T0, T1, T2, TReturn>), _target, _methodName);
-			arg0 = (T0) _args[0].GetValue(Arg.FromRealType(typeof(T0)));
-			arg1 = (T1) _args[1].GetValue(Arg.FromRealType(typeof(T1)));
-			arg2 = (T2) _args[2].GetValue(Arg.FromRealType(typeof(T2)));
-			cached = true;
+			if (_dynamic) {
+				func = new InvokableCallback<T0, T1, T2, TReturn>(target, methodName);
+			} else {
+				func = GetPersistentMethod();
+			}
+		}
+	}
+}
+
+public abstract class SerializableCallback<T0, T1, T2, T3, TReturn> : SerializableCallbackBase<TReturn> {
+	public TReturn Invoke(T0 arg0, T1 arg1, T2 arg2, T3 arg3) {
+		if (func == null) Cache();
+		if (_dynamic) {
+			InvokableCallback<T0, T1, T2, T3, TReturn> call = func as InvokableCallback<T0, T1, T2, T3, TReturn>;
+			return call.Invoke(arg0, arg1, arg2, arg3);
+		} else {
+			return func.Invoke(Args);
+		}
+	}
+
+	protected override void Cache() {
+		if (_target == null || string.IsNullOrEmpty(_methodName)) {
+			func = new InvokableCallback<T0, T1, T2, T3, TReturn>(null, null);
+		} else {
+			if (_dynamic) {
+				func = new InvokableCallback<T0, T1, T2, T3, TReturn>(target, methodName);
+			} else {
+				func = GetPersistentMethod();
+			}
 		}
 	}
 }
