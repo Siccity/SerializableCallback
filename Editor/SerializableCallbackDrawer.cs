@@ -189,6 +189,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		for (int i = 0; i < staticItems.Count; i++) {
 			menu.AddItem(staticItems[i].label, false, staticItems[i].action);
 		}
+		if (menu.GetItemCount() == 0) menu.AddDisabledItem(new GUIContent("No methods with return type '" + GetTypeName(returnType) + "'"));
 		menu.ShowAsContext();
 	}
 
