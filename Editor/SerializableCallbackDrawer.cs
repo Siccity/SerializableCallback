@@ -124,12 +124,21 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		// Get return type and argument constraints
 		SerializableCallbackBase dummy = GetDummyFunction(property);
 		Type[] genericTypes = dummy.GetType().BaseType.GetGenericArguments();
-		if (genericTypes != null && genericTypes.Length > 0) {
-			// The last generic argument is the return type
-			returnType = genericTypes[genericTypes.Length - 1];
+		// SerializableEventBase is always void return type
+		if (dummy is SerializableEventBase) {
+			returnType = typeof(void);
 			if (genericTypes.Length > 1) {
-				argTypes = new Type[genericTypes.Length - 1];
-				Array.Copy(genericTypes, argTypes, genericTypes.Length - 1);
+				argTypes = new Type[genericTypes.Length];
+				Array.Copy(genericTypes, argTypes, genericTypes.Length);
+			}
+		} else {
+			if (genericTypes != null && genericTypes.Length > 0) {
+				// The last generic argument is the return type
+				returnType = genericTypes[genericTypes.Length - 1];
+				if (genericTypes.Length > 1) {
+					argTypes = new Type[genericTypes.Length - 1];
+					Array.Copy(genericTypes, argTypes, genericTypes.Length - 1);
+				}
 			}
 		}
 
@@ -150,7 +159,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 				// Skip methods with wrong return type
 				if (returnType != null && method.ReturnType != returnType) continue;
 				// Skip methods with null return type
-				if (method.ReturnType == typeof(void)) continue;
+				// if (method.ReturnType == typeof(void)) continue;
 				// Skip generic methods
 				if (method.IsGenericMethod) continue;
 
