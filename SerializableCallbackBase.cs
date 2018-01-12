@@ -33,6 +33,9 @@ public abstract class SerializableCallbackBase<TReturn> : SerializableCallbackBa
 			case 4:
 				genericType = typeof(InvokableCallback<, , ,>).MakeGenericType(types);
 				break;
+			case 5:
+				genericType = typeof(InvokableCallback<, , , ,>).MakeGenericType(types);
+				break;
 			default:
 				throw new ArgumentException(types.Length + "args");
 		}
