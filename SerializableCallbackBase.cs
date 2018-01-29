@@ -71,9 +71,11 @@ public abstract class SerializableCallbackBase : ISerializationCallbackReceiver 
 	[SerializeField] private bool dirty;
 #endif
 
+#if UNITY_EDITOR
 	protected SerializableCallbackBase() {
 		_typeName = base.GetType().AssemblyQualifiedName;
 	}
+#endif
 
 	public virtual void ClearCache() {
 		argTypes = null;
@@ -90,15 +92,17 @@ public abstract class SerializableCallbackBase : ISerializationCallbackReceiver 
 
 	protected abstract void Cache();
 
-#if UNITY_EDITOR
 	public void OnBeforeSerialize() {
+#if UNITY_EDITOR
 		if (dirty) { ClearCache(); dirty = false; }
+#endif
 	}
 
 	public void OnAfterDeserialize() {
+#if UNITY_EDITOR
 		_typeName = base.GetType().AssemblyQualifiedName;
-	}
 #endif
+	}
 }
 
 [System.Serializable]
