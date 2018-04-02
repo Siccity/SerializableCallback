@@ -147,9 +147,15 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		List<MenuItem> dynamicItems = new List<MenuItem>();
 		List<MenuItem> staticItems = new List<MenuItem>();
 
-		Object[] targets = new Object[] { targetProp.objectReferenceValue };
-		if (targets[0] is Component) targets = (targets[0] as Component).gameObject.GetComponents<Component>();
-		for (int c = 0; c < targets.Length; c++) {
+		List<Object> targets = new List<Object>() { targetProp.objectReferenceValue };
+		if (targets[0] is Component) {
+			targets = (targets[0] as Component).gameObject.GetComponents<Component>().ToList<Object>();
+			targets.Add((targetProp.objectReferenceValue as Component).gameObject);
+		} else if (targets[0] is GameObject) {
+			targets = (targets[0] as GameObject).GetComponents<Component>().ToList<Object>();
+			targets.Add(targetProp.objectReferenceValue as GameObject);
+		}
+		for (int c = 0; c < targets.Count; c++) {
 			Object t = targets[c];
 			MethodInfo[] methods = targets[c].GetType().GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static);
 
