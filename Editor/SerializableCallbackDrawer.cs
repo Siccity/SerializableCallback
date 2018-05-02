@@ -51,6 +51,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 
 			GUIContent methodlabel = new GUIContent("n/a");
 			if (activeMethod != null) methodlabel = new GUIContent(PrettifyMethod(activeMethod));
+			else if (!string.IsNullOrEmpty(methodName)) methodlabel = new GUIContent("Missing (" + PrettifyMethod(methodName, argTypes) + ")");
 
 			Rect methodRect = new Rect(position.x, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width, EditorGUIUtility.singleLineHeight);
 
@@ -206,6 +207,11 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		}
 		if (menu.GetItemCount() == 0) menu.AddDisabledItem(new GUIContent("No methods with return type '" + GetTypeName(returnType) + "'"));
 		menu.ShowAsContext();
+	}
+
+	string PrettifyMethod(string methodName, Type[] parmTypes) {
+		string parmnames = PrettifyTypes(parmTypes);
+		return methodName + "(" + parmnames + ")";
 	}
 
 	string PrettifyMethod(MethodInfo methodInfo) {
