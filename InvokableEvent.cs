@@ -2,7 +2,7 @@
 
 public class InvokableEvent : InvokableEventBase {
 
-	public Action action;
+	public System.Action action;
 
 	public void Invoke() {
 		action();
