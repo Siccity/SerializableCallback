@@ -7,6 +7,7 @@ using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
+[CustomPropertyDrawer(typeof(TargetConstraintAttribute))]
 [CustomPropertyDrawer(typeof(SerializableCallbackBase), true)]
 public class SerializableCallbackDrawer : PropertyDrawer {
 
@@ -28,7 +29,11 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		// Get target
 		SerializedProperty targetProp = property.FindPropertyRelative("_target");
 		object target = targetProp.objectReferenceValue;
-		EditorGUI.PropertyField(targetRect, targetProp, GUIContent.none);
+		if (attribute != null && attribute is TargetConstraintAttribute) {
+			Type targetType = (attribute as TargetConstraintAttribute).targetType;
+			EditorGUI.ObjectField(targetRect, targetProp, targetType, GUIContent.none);
+		}
+		else EditorGUI.PropertyField(targetRect, targetProp, GUIContent.none);
 
 		if (target != null) {
 			int indent = EditorGUI.indentLevel;
