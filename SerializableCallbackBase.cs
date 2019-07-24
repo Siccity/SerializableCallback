@@ -61,15 +61,11 @@ public abstract class SerializableCallbackBase : ISerializationCallbackReceiver 
 	[SerializeField] protected string _methodName;
 	[SerializeField] protected Arg[] _args;
 	[SerializeField] protected bool _dynamic;
-#if UNITY_EDITOR
 #pragma warning disable 0414
 	[SerializeField] private string _typeName;
 #pragma warning restore 0414
-#endif
 
-#if UNITY_EDITOR
 	[SerializeField] private bool dirty;
-#endif
 
 #if UNITY_EDITOR
 	protected SerializableCallbackBase() {
