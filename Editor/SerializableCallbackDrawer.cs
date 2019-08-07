@@ -32,10 +32,17 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		if (attribute != null && attribute is TargetConstraintAttribute) {
 			Type targetType = (attribute as TargetConstraintAttribute).targetType;
 			EditorGUI.ObjectField(targetRect, targetProp, targetType, GUIContent.none);
-		}
-		else EditorGUI.PropertyField(targetRect, targetProp, GUIContent.none);
+		} else EditorGUI.PropertyField(targetRect, targetProp, GUIContent.none);
 
-		if (target != null) {
+		if (target == null) {
+			Rect helpBoxRect = new Rect(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight);
+			string msg = "Call not set. Execution will be slower.";
+			EditorGUI.HelpBox(helpBoxRect, msg, MessageType.Warning);
+		} else if (target is MonoScript) {
+			Rect helpBoxRect = new Rect(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight + EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing);
+			string msg = "Assign a GameObject, Component or a ScriptableObject, not a script.";
+			EditorGUI.HelpBox(helpBoxRect, msg, MessageType.Warning);
+		} else {
 			int indent = EditorGUI.indentLevel;
 			EditorGUI.indentLevel++;
 
@@ -100,10 +107,6 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 				}
 			}
 			EditorGUI.indentLevel = indent;
-		} else {
-			Rect helpBoxRect = new Rect(position.x + 8, targetRect.max.y + EditorGUIUtility.standardVerticalSpacing, position.width - 16, EditorGUIUtility.singleLineHeight);
-			string msg = "Call not set. Execution will be slower.";
-			EditorGUI.LabelField(helpBoxRect, new GUIContent(msg, msg), "helpBox");
 		}
 
 		// Set indent back to what it was
@@ -277,7 +280,8 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		SerializedProperty argProps = property.FindPropertyRelative("_args");
 		SerializedProperty dynamicProp = property.FindPropertyRelative("_dynamic");
 		float height = lineheight + lineheight;
-		if (targetProp.objectReferenceValue != null && !dynamicProp.boolValue) height += argProps.arraySize * lineheight;
+		if (targetProp.objectReferenceValue != null && targetProp.objectReferenceValue is MonoScript) height += lineheight;
+		else if (targetProp.objectReferenceValue != null && !dynamicProp.boolValue) height += argProps.arraySize * lineheight;
 		height += 8;
 		return height;
 	}
