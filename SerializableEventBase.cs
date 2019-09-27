@@ -18,7 +18,7 @@ public abstract class SerializableEventBase : SerializableCallbackBase {
 		Type genericType = null;
 		switch (types.Length) {
 			case 0:
-				genericType = typeof(InvokableEvent).MakeGenericType(types);
+				genericType = typeof(InvokableEvent);
 				break;
 			case 1:
 				genericType = typeof(InvokableEvent<>).MakeGenericType(types);
