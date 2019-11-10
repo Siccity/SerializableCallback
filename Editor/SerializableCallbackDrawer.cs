@@ -136,7 +136,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		// SerializableEventBase is always void return type
 		if (dummy is SerializableEventBase) {
 			returnType = typeof(void);
-			if (genericTypes.Length > 1) {
+			if (genericTypes.Length > 0) {
 				argTypes = new Type[genericTypes.Length];
 				Array.Copy(genericTypes, argTypes, genericTypes.Length);
 			}
