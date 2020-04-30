@@ -35,4 +35,15 @@ public class MyClass : MonoBehaviour {
 | SerializedCallback<float, bool> (Persistent) | 00.01026s |
 | SerializedCallback<float, bool> (Dynamic)    | 00.00797s |
 
+
+### Installing with Unity Package Manager
+To install this project as a dependency using the Unity Package Manager,
+add the following line to your project's `manifest.json`:
+
+```
+"com.github.siccity.serializablecallback": "git+https://github.com/Siccity/SerializableCallback.git"
+```
+
 Join the [Discord](https://discord.gg/qgPrHv4 "Join Discord server") server to leave feedback or get support.
+
+
