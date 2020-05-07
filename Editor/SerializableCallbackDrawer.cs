@@ -15,8 +15,12 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		// Indent label
 		label.text = " " + label.text;
 
+#if UNITY_2019_OR_NEWER
+ 		GUI.Box(position, "");
+#else
 		GUI.Box(position, "", (GUIStyle)
 			"flow overlay box");
+#endif
 		position.y += 4;
 		// Using BeginProperty / EndProperty on the parent property means that
 		// prefab override logic works on the entire property.
