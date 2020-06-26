@@ -15,7 +15,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		// Indent label
 		label.text = " " + label.text;
 
-#if UNITY_2019_OR_NEWER
+#if UNITY_2019_1_OR_NEWER
  		GUI.Box(position, "");
 #else
 		GUI.Box(position, "", (GUIStyle)
