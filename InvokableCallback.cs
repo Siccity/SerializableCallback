@@ -34,6 +34,8 @@ public class InvokableCallback<T0, TReturn> : InvokableCallbackBase<TReturn> {
 	}
 
 	public override TReturn Invoke(params object[] args) {
+		// Convert from special "unity-nulls" to true null
+		if (args[0] is UnityEngine.Object && (UnityEngine.Object) args[0] == null) args[0] = null;
 		return func((T0) args[0]);
 	}
 
@@ -56,6 +58,9 @@ public class InvokableCallback<T0, T1, TReturn> : InvokableCallbackBase<TReturn>
 	}
 
 	public override TReturn Invoke(params object[] args) {
+		// Convert from special "unity-nulls" to true null
+		if (args[0] is UnityEngine.Object && (UnityEngine.Object) args[0] == null) args[0] = null;
+		if (args[1] is UnityEngine.Object && (UnityEngine.Object) args[1] == null) args[1] = null;
 		return func((T0) args[0], (T1) args[1]);
 	}
 
@@ -78,6 +83,10 @@ public class InvokableCallback<T0, T1, T2, TReturn> : InvokableCallbackBase<TRet
 	}
 
 	public override TReturn Invoke(params object[] args) {
+		// Convert from special "unity-nulls" to true null
+		if (args[0] is UnityEngine.Object && (UnityEngine.Object) args[0] == null) args[0] = null;
+		if (args[1] is UnityEngine.Object && (UnityEngine.Object) args[1] == null) args[1] = null;
+		if (args[2] is UnityEngine.Object && (UnityEngine.Object) args[2] == null) args[2] = null;
 		return func((T0) args[0], (T1) args[1], (T2) args[2]);
 	}
 
@@ -100,6 +109,11 @@ public class InvokableCallback<T0, T1, T2, T3, TReturn> : InvokableCallbackBase<
 	}
 
 	public override TReturn Invoke(params object[] args) {
+		// Convert from special "unity-nulls" to true null
+		if (args[0] is UnityEngine.Object && (UnityEngine.Object) args[0] == null) args[0] = null;
+		if (args[1] is UnityEngine.Object && (UnityEngine.Object) args[1] == null) args[1] = null;
+		if (args[2] is UnityEngine.Object && (UnityEngine.Object) args[2] == null) args[2] = null;
+		if (args[3] is UnityEngine.Object && (UnityEngine.Object) args[3] == null) args[3] = null;
 		return func((T0) args[0], (T1) args[1], (T2) args[2], (T3) args[3]);
 	}
 

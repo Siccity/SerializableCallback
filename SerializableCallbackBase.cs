@@ -15,8 +15,8 @@ public abstract class SerializableCallbackBase<TReturn> : SerializableCallbackBa
 	}
 
 	protected InvokableCallbackBase<TReturn> GetPersistentMethod() {
-		Type[] types = new Type[ArgTypes.Length + 1];
-		Array.Copy(ArgTypes, types, ArgTypes.Length);
+		Type[] types = new Type[ArgRealTypes.Length + 1];
+		Array.Copy(ArgRealTypes, types, ArgRealTypes.Length);
 		types[types.Length - 1] = typeof(TReturn);
 
 		Type genericType = null;
@@ -55,6 +55,8 @@ public abstract class SerializableCallbackBase : ISerializationCallbackReceiver 
 	public object[] args;
 	public Type[] ArgTypes { get { return argTypes != null ? argTypes : argTypes = _args.Select(x => Arg.RealType(x.argType)).ToArray(); } }
 	public Type[] argTypes;
+	public Type[] ArgRealTypes { get { return argRealTypes != null ? argRealTypes : argRealTypes = _args.Select(x => Type.GetType(x._typeName)).ToArray(); } }
+	public Type[] argRealTypes;
 	public bool dynamic { get { return _dynamic; } set { _dynamic = value; ClearCache(); } }
 
 	[SerializeField] protected Object _target;
@@ -110,6 +112,7 @@ public struct Arg {
 	public string stringValue;
 	public Object objectValue;
 	public ArgType argType;
+	public string _typeName;
 
 	public object GetValue() {
 		return GetValue(argType);
@@ -154,7 +157,7 @@ public struct Arg {
 		else if (type == typeof(int)) return ArgType.Int;
 		else if (type == typeof(float)) return ArgType.Float;
 		else if (type == typeof(String)) return ArgType.String;
-		else if (type == typeof(Object)) return ArgType.Object;
+		else if (typeof(Object).IsAssignableFrom(type)) return ArgType.Object;
 		else return ArgType.Unsupported;
 	}
 

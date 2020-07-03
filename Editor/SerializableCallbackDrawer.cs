@@ -16,7 +16,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		label.text = " " + label.text;
 
 #if UNITY_2019_1_OR_NEWER
- 		GUI.Box(position, "");
+		GUI.Box(position, "");
 #else
 		GUI.Box(position, "", (GUIStyle)
 			"flow overlay box");
@@ -24,6 +24,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		position.y += 4;
 		// Using BeginProperty / EndProperty on the parent property means that
 		// prefab override logic works on the entire property.
+		property.serializedObject.Update();
 		EditorGUI.BeginProperty(position, label, property);
 		// Draw label
 		Rect pos = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
@@ -89,20 +90,33 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 					EditorGUI.BeginChangeCheck();
 					switch ((Arg.ArgType) argProp.FindPropertyRelative("argType").enumValueIndex) {
 						case Arg.ArgType.Bool:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("boolValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("boolValue"), argLabel);
+							break;
 						case Arg.ArgType.Int:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("intValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("intValue"), argLabel);
+							break;
 						case Arg.ArgType.Float:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("floatValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("floatValue"), argLabel);
+							break;
 						case Arg.ArgType.String:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("stringValue"), argLabel);
-						break;
+							EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("stringValue"), argLabel);
+							break;
 						case Arg.ArgType.Object:
-						EditorGUI.PropertyField(argRect, argProp.FindPropertyRelative("objectValue"), argLabel);
-						break;
+							SerializedProperty typeProp = argProp.FindPropertyRelative("_typeName");
+							SerializedProperty objProp = argProp.FindPropertyRelative("objectValue");
+
+							if (typeProp != null) {
+								Type objType = Type.GetType(typeProp.stringValue, false);
+								EditorGUI.BeginChangeCheck();
+								Object obj = objProp.objectReferenceValue;
+								obj = EditorGUI.ObjectField(argRect, argLabel, obj, objType, true);
+								if (EditorGUI.EndChangeCheck()) {
+									objProp.objectReferenceValue = obj;
+								}
+							} else {
+								EditorGUI.PropertyField(argRect, objProp, argLabel);
+							}
+							break;
 					}
 					if (EditorGUI.EndChangeCheck()) {
 						property.FindPropertyRelative("dirty").boolValue = true;
@@ -115,6 +129,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 
 		// Set indent back to what it was
 		EditorGUI.EndProperty();
+		property.serializedObject.ApplyModifiedProperties();
 	}
 
 	private class MenuItem {
@@ -161,6 +176,7 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		List<MenuItem> staticItems = new List<MenuItem>();
 
 		List<Object> targets = new List<Object>() { targetProp.objectReferenceValue };
+
 		if (targets[0] is Component) {
 			targets = (targets[0] as Component).gameObject.GetComponents<Component>().ToList<Object>();
 			targets.Add((targetProp.objectReferenceValue as Component).gameObject);
@@ -243,10 +259,13 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		return activeMethod;
 	}
 
-	private Type[] GetArgTypes(SerializedProperty argProp) {
-		Type[] types = new Type[argProp.arraySize];
-		for (int i = 0; i < argProp.arraySize; i++) {
-			types[i] = Arg.RealType((Arg.ArgType) argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex);
+	private Type[] GetArgTypes(SerializedProperty argsProp) {
+		Type[] types = new Type[argsProp.arraySize];
+		for (int i = 0; i < argsProp.arraySize; i++) {
+			SerializedProperty argProp = argsProp.GetArrayElementAtIndex(i);
+			SerializedProperty typeNameProp = argProp.FindPropertyRelative("_typeName");
+			if (typeNameProp != null) types[i] = Type.GetType(typeNameProp.stringValue, false);
+			if (types[i] == null) types[i] = Arg.RealType((Arg.ArgType) argProp.FindPropertyRelative("argType").enumValueIndex);
 		}
 		return types;
 	}
@@ -262,7 +281,8 @@ public class SerializableCallbackDrawer : PropertyDrawer {
 		ParameterInfo[] parameters = methodInfo.GetParameters();
 		argProp.arraySize = parameters.Length;
 		for (int i = 0; i < parameters.Length; i++) {
-		argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
+			argProp.FindPropertyRelative("Array.data[" + i + "].argType").enumValueIndex = (int) Arg.FromRealType(parameters[i].ParameterType);
+			argProp.FindPropertyRelative("Array.data[" + i + "]._typeName").stringValue = parameters[i].ParameterType.AssemblyQualifiedName;
 		}
 		property.FindPropertyRelative("dirty").boolValue = true;
 		property.serializedObject.ApplyModifiedProperties();
