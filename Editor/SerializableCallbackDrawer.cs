@@ -12,6 +12,9 @@ using Object = UnityEngine.Object;
 public class SerializableCallbackDrawer : PropertyDrawer {
 
 	public override void OnGUI(Rect position, SerializedProperty property, GUIContent label) {
+		// Without this, you can't edit fields above the SerializedProperty
+		property.serializedObject.ApplyModifiedProperties();
+
 		// Indent label
 		label.text = " " + label.text;
 
