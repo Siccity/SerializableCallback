@@ -3,7 +3,13 @@ using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
 
-public abstract class SerializableCallback<TReturn> : SerializableCallbackBase<TReturn> {
+#if UNITY_2020_1_OR_NEWER
+[System.Serializable]
+public class SerializableCallback<TReturn> : SerializableCallbackBase<TReturn>
+#else
+public class abstract SerializableCallback<TReturn> : SerializableCallbackBase<TReturn>
+#endif
+{
 	public TReturn Invoke() {
 		if (func == null) Cache();
 		if (_dynamic) {
@@ -27,7 +33,14 @@ public abstract class SerializableCallback<TReturn> : SerializableCallbackBase<T
 	}
 }
 
-public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBase<TReturn> {
+
+#if UNITY_2020_1_OR_NEWER
+[System.Serializable]
+public class SerializableCallback<T0, TReturn> : SerializableCallbackBase<TReturn>
+#else
+public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBase<TReturn> 
+#endif
+{
 	public TReturn Invoke(T0 arg0) {
 		if (func == null) Cache();
 		if (_dynamic) {
@@ -51,7 +64,14 @@ public abstract class SerializableCallback<T0, TReturn> : SerializableCallbackBa
 	}
 }
 
+
+#if UNITY_2020_1_OR_NEWER
+[System.Serializable]
+public class SerializableCallback<T0, T1, TReturn> : SerializableCallbackBase<TReturn>
+#else
 public abstract class SerializableCallback<T0, T1, TReturn> : SerializableCallbackBase<TReturn> {
+#endif
+{
 	public TReturn Invoke(T0 arg0, T1 arg1) {
 		if (func == null) Cache();
 		if (_dynamic) {
@@ -75,7 +95,14 @@ public abstract class SerializableCallback<T0, T1, TReturn> : SerializableCallba
 	}
 }
 
-public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCallbackBase<TReturn> {
+
+#if UNITY_2020_1_OR_NEWER
+[System.Serializable]
+public class SerializableCallback<T0, T1, T2, TReturn> : SerializableCallbackBase<TReturn>
+#else
+public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCallbackBase<TReturn> 
+#endif
+{
 	public TReturn Invoke(T0 arg0, T1 arg1, T2 arg2) {
 		if (func == null) Cache();
 		if (_dynamic) {
@@ -99,7 +126,14 @@ public abstract class SerializableCallback<T0, T1, T2, TReturn> : SerializableCa
 	}
 }
 
-public abstract class SerializableCallback<T0, T1, T2, T3, TReturn> : SerializableCallbackBase<TReturn> {
+
+#if UNITY_2020_1_OR_NEWER
+[System.Serializable]
+public class SerializableCallback<T0, T1, T2, T3, TReturn> : SerializableCallbackBase<TReturn>
+#else
+public abstract class SerializableCallback<T0, T1, T2, T3, TReturn> : SerializableCallbackBase<TReturn> 
+#endif
+{
 	public TReturn Invoke(T0 arg0, T1 arg1, T2 arg2, T3 arg3) {
 		if (func == null) Cache();
 		if (_dynamic) {
