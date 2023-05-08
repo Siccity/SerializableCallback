@@ -1,3 +1,7 @@
-﻿public abstract class InvokableEventBase {
-	public abstract void Invoke(params object[] args);
+﻿namespace SerializableCallbacks
+{
+	public abstract class InvokableEventBase
+	{
+		public abstract void Invoke(params object[] args);
+	}
 }
