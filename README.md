@@ -37,11 +37,16 @@ public class MyClass : MonoBehaviour {
 
 
 ### Installing with Unity Package Manager
-To install this project as a dependency using the Unity Package Manager,
+To install this project as a dependency using the [Unity Package Manager](https://docs.unity3d.com/Manual/upm-git.html),
 add the following line to your project's `manifest.json`:
 
 ```
 "com.github.siccity.serializablecallback": "git+https://github.com/Siccity/SerializableCallback.git"
+```
+
+or just add the following line by clicking on `add package from git URL` button in the [Unity Package Manager](https://docs.unity3d.com/Manual/upm-ui-giturl.html) window:
+```
+https://github.com/Siccity/SerializableCallback.git
 ```
 
 Join the [Discord](https://discord.gg/qgPrHv4 "Join Discord server") server to leave feedback or get support.
